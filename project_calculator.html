@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final Calculator with Visible =</title>
+  <style>
+    :root {
+      --bg: #f0f0f3;
+      --card: rgba(255, 255, 255, 0.2);
+      --text: #222;
+      --button: #ffffff;
+      --accent: #4b7bec;
+    }
+
+    body.dark {
+      --bg: #1e1e2f;
+      --card: rgba(255, 255, 255, 0.05);
+      --text: #f5f5f5;
+      --button: #2e2e3f;
+      --accent: #53d4ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 50px;
+      min-height: 100vh;
+      transition: background 0.3s;
+    }
+
+    .calculator {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      padding: 25px;
+      width: 340px;
+      color: var(--text);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .top-bar h2 {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    #display {
+      width: 100%;
+      min-height: 60px;
+      font-size: 1.5em;
+      text-align: right;
+      padding: 10px;
+      border: none;
+      margin-bottom: 15px;
+      background: transparent;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .result-highlight {
+      color: #00b894;
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .buttons button {
+      padding: 20px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--button);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .buttons button:active {
+      transform: scale(0.95);
+    }
+
+    .equal {
+      background: var(--accent);
+      color: #0a040f;
+    }
+
+    .clear {
+      background: #f44336;
+      color: #ab5509;
+    }
+
+    .history {
+      margin-top: 20px;
+      max-height: 100px;
+      overflow-y: auto;
+      font-size: 0.85em;
+    }
+
+    .history-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      opacity: 0.8;
+    }
+
+    @media (max-width: 400px) {
+      .calculator {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="top-bar">
+      <h2>Calculator</h2>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <!-- Use a DIV instead of INPUT for full HTML support -->
+    <div id="display"></div>
+
+    <div class="buttons">
+      <button onclick="append('7')">7</button>
+      <button onclick="append('8')">8</button>
+      <button onclick="append('9')">9</button>
+      <button onclick="append('/')">÷</button>
+
+      <button onclick="append('4')">4</button>
+      <button onclick="append('5')">5</button>
+      <button onclick="append('6')">6</button>
+      <button onclick="append('*')">×</button>
+
+      <button onclick="append('1')">1</button>
+      <button onclick="append('2')">2</button>
+      <button onclick="append('3')">3</button>
+      <button onclick="append('-')">−</button>
+
+      <button onclick="append('0')">0</button>
+      <button onclick="append('.')">.</button>
+      <button class="equal" onclick="calculate()">=</button>
+      <button onclick="append('+')">+</button>
+
+      <button class="clear" style="grid-column: span 4" onclick="clearDisplay()">Clear</button>
+    </div>
+
+    <div class="history" id="history"></div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+    let currentInput = '';
+
+    function append(value) {
+      if (display.innerHTML.includes('=')) clearDisplay();
+      currentInput += value;
+      display.textContent = currentInput;
+    }
+
+    function calculate() {
+      try {
+        const result = eval(currentInput);
+        const output = `${currentInput} = <span class="result-highlight">${result}</span>`;
+        display.innerHTML = output;
+        addToHistory(output);
+        currentInput = '';
+      } catch {
+        display.textContent = 'Error';
+      }
+    }
+
+    function clearDisplay() {
+      display.textContent = '';
+      currentInput = '';
+    }
+
+    function addToHistory(html) {
+      const entry = document.createElement('div');
+      entry.classList.add('history-entry');
+      entry.innerHTML = html;
+      history.prepend(entry);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (!isNaN(e.key) || ['+', '-', '*', '/', '.', '(', ')'].includes(e.key)) {
+        append(e.key);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        calculate();
+      } else if (e.key === 'Backspace') {
+        currentInput = currentInput.slice(0, -1);
+        display.textContent = currentInput;
+      } else if (e.key === 'Escape') {
+        clearDisplay();
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
